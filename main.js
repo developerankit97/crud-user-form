@@ -1,3 +1,4 @@
+const userId = document.querySelector('#_id');
 const userName = document.querySelector('#name');
 const userEmail = document.querySelector('#email');
 const userPhone = document.querySelector('#phone');
@@ -7,6 +8,7 @@ const list = document.querySelector('.items');
 btn.addEventListener('click', addAppointment);
 window.addEventListener('DOMContentLoaded', getAppointsments);
 list.addEventListener('click', deleteAppointment);
+list.addEventListener('click', updateAppointment);
 
 function getAppointsments() {
     axios
@@ -28,15 +30,22 @@ function getAppointsments() {
 
 function addAppointment(e) {
     e.preventDefault();
+    const id = userId.value;
     const name = userName.value;
     const email = userEmail.value;
     const phone = userPhone.value;
-    if (name && email && phone) {
-        let user = {
-            "name": name,
-            "email": email,
-            "phone": phone,
-        };
+    let user = {
+        "name": name,
+        "email": email,
+        "phone": phone,
+    };
+    if (id) {
+        axios
+            .put(`https://crudcrud.com/api/bbf764bcba4c4345b7c4c9ad3e9d0ed4/appointments/${id}`, user)
+            .then(res => window.location.reload())
+            .catch(err => console.error(err));
+    }
+    if (!id && name && email && phone) {
         axios
             .post('https://crudcrud.com/api/bbf764bcba4c4345b7c4c9ad3e9d0ed4/appointments', user)
             .then(response => {
@@ -58,12 +67,30 @@ function addAppointment(e) {
 }
 
 function deleteAppointment(e) {
-    const item = e.target.parentElement.parentElement;
-    const id = item.getAttribute('id');
-    axios
-        .delete(`https://crudcrud.com/api/bbf764bcba4c4345b7c4c9ad3e9d0ed4/appointments/${id}`)
-        .then(response => {
-            item.remove();
-        })
-        .catch(err => console.error(err));
+    if (e.target.classList.contains('delete')) {
+        const item = e.target.parentElement.parentElement;
+        const id = item.getAttribute('id');
+        axios
+            .delete(`https://crudcrud.com/api/bbf764bcba4c4345b7c4c9ad3e9d0ed4/appointments/${id}`)
+            .then(response => {
+                item.remove();
+            })
+            .catch(err => console.error(err));
+    }
+}
+
+function updateAppointment(e) {
+    if (e.target.classList.contains('edit')) {
+        const item = e.target.parentElement.parentElement;
+        const id = item.getAttribute('id');
+        axios
+            .get(`https://crudcrud.com/api/bbf764bcba4c4345b7c4c9ad3e9d0ed4/appointments/${id}`)
+            .then(res => {
+                userId.value = res.data._id;
+                userName.value = res.data.name;
+                userEmail.value = res.data.email;
+                userPhone.value = res.data.phone;
+            })
+            .catch(err => console.error(err));
+    }
 }
